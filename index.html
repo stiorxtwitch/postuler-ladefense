@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Recrutement – La Défense</title>
+<style>
+body {
+  font-family: Arial;
+  background:#111;
+  color:white;
+}
+form {
+  max-width:700px;
+  margin:auto;
+}
+input, textarea, select {
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+}
+button {
+  padding:12px;
+  width:100%;
+  background:#1e90ff;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+#loading {
+  display:none;
+  text-align:center;
+  margin-top:50px;
+}
+.spinner {
+  border:6px solid #333;
+  border-top:6px solid #1e90ff;
+  border-radius:50%;
+  width:60px;
+  height:60px;
+  animation: spin 1s linear infinite;
+  margin:auto;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body>
+
+<form id="recruitForm">
+<h2>Recrutement – La Défense</h2>
+
+<input name="nom" placeholder="Nom Prénom" required>
+<input name="age" type="number" placeholder="Âge" required>
+<input name="nationalite" placeholder="Nationalité" required>
+<input name="telephone" placeholder="Numéro de téléphone" required>
+
+<select name="casier">
+<option>Non</option>
+<option>Oui (préciser ci-dessous)</option>
+</select>
+
+<input name="discord" placeholder="Identifiant Discord" required>
+
+<input name="dispos" placeholder="Disponibilités (jours)" required>
+
+<textarea name="motivation" minlength="200" placeholder="Pourquoi rejoindre l'armée (5 lignes min)" required></textarea>
+
+<textarea name="apport" placeholder="Que pensez-vous apporter à l'armée" required></textarea>
+
+<textarea name="role" placeholder="Que représente le rôle d’un militaire" required></textarea>
+
+<textarea name="experience" placeholder="Expérience professionnelle (si oui)" required></textarea>
+
+<label><input type="checkbox" name="hierarchie" required> Je respecte la hiérarchie</label><br>
+<label><input type="checkbox" name="sanction" required> Je comprends les sanctions</label><br>
+<label><input type="checkbox" name="honnete" required> J'ai été honnête</label><br><br>
+
+<button type="submit">Envoyer le dossier</button>
+</form>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Dossier en attente de validation...</p>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx16a4PQR6NIh2XmqMIlzm3W8vWTiFVf1JEWcuCWoNiPifhccnUb8LhRnJTlY6LaQtt/exec";
+
+async function getIP() {
+  const res = await fetch("https://api.ipify.org?format=json");
+  const data = await res.json();
+  return data.ip;
+}
+
+document.getElementById("recruitForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const ip = await getIP();
+  const formData = new FormData(e.target);
+  formData.append("ip", ip);
+
+  await fetch(SCRIPT_URL, {
+    method: "POST",
+    body: formData
+  });
+
+  localStorage.setItem("ip", ip);
+  showLoading();
+});
+
+async function checkStatus() {
+  const ip = localStorage.getItem("ip");
+  if(!ip) return;
+
+  const res = await fetch(SCRIPT_URL + "?ip=" + ip);
+  const status = await res.text();
+
+  if(status === "VALIDÉ") {
+    window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
+  } else {
+    showLoading();
+  }
+}
+
+function showLoading() {
+  document.getElementById("recruitForm").style.display = "none";
+  document.getElementById("loading").style.display = "block";
+  setInterval(checkStatus, 5000);
+}
+
+checkStatus();
+</script>
+
+</body>
+</html>
