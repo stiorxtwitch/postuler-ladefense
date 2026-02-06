@@ -1,5 +1,4 @@
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -8,37 +7,37 @@
 <style>
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(180deg,#020617,#020617);
+  background: linear-gradient(180deg, #020617, #020617);
   color: #e5e7eb;
   margin: 0;
-  padding: 30px;
+  padding: 40px;
 }
 
 .container {
-  max-width: 750px;
+  max-width: 760px;
   margin: auto;
   background: #020617;
   border: 1px solid #1e293b;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 40px rgba(0,0,0,.6);
+  padding: 35px;
+  border-radius: 14px;
+  box-shadow: 0 0 50px rgba(0,0,0,.7);
 }
 
 h1 {
   text-align: center;
   color: #60a5fa;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 input, textarea, select {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
+  margin-top: 12px;
   border-radius: 6px;
-  border: none;
+  border: 1px solid #1e293b;
   background: #020617;
   color: white;
-  border: 1px solid #1e293b;
+  font-size: 15px;
 }
 
 textarea {
@@ -47,11 +46,11 @@ textarea {
 
 label {
   display: block;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 button {
-  margin-top: 25px;
+  margin-top: 28px;
   width: 100%;
   padding: 14px;
   background: #2563eb;
@@ -69,7 +68,7 @@ button:hover {
 #loading {
   display: none;
   text-align: center;
-  margin-top: 120px;
+  margin-top: 140px;
 }
 
 .spinner {
@@ -106,9 +105,12 @@ button:hover {
       <option value="Oui">Oui</option>
     </select>
 
-    <textarea name="casier_details" id="casier_details"
+    <textarea
+      name="casier_details"
+      id="casier_details"
       placeholder="Précisez vos antécédents judiciaires"
-      style="display:none;"></textarea>
+      style="display:none;"
+    ></textarea>
 
     <input name="discord" placeholder="Identifiant Discord" required>
     <input name="dispos" placeholder="Disponibilités (jours)" required>
@@ -120,9 +122,20 @@ button:hover {
     <textarea name="role" placeholder="Que représente le rôle d’un militaire ?" required></textarea>
     <textarea name="experience" placeholder="Expérience professionnelle" required></textarea>
 
-    <label><input type="checkbox" name="hierarchie" required> Je m'engage à respecter la hiérarchie militaire</label>
-    <label><input type="checkbox" name="sanction" required> Je comprends les sanctions possibles</label>
-    <label><input type="checkbox" name="honnete" required> J’ai répondu honnêtement</label>
+    <label>
+      <input type="checkbox" name="hierarchie" required>
+      Je m'engage à respecter la hiérarchie militaire
+    </label>
+
+    <label>
+      <input type="checkbox" name="sanction" required>
+      Je comprends que toute faute peut entraîner une sanction
+    </label>
+
+    <label>
+      <input type="checkbox" name="honnete" required>
+      J’ai répondu honnêtement au questionnaire
+    </label>
 
     <button type="submit">Envoyer le dossier</button>
   </form>
@@ -130,13 +143,13 @@ button:hover {
 
 <div id="loading">
   <div class="spinner"></div>
-  <p>Dossier en attente de validation...</p>
+  <p>Dossier en attente de validation…</p>
 </div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzm0Wbf7bCLY_YHoMDT0tBfjTK9YjfrFJiVpL6ngXMsk_gvJVL2fnd79JD-C3rWmu69/exec";
 
-// Afficher / cacher le champ antécédents
+// Champ conditionnel casier
 document.getElementById("casier").addEventListener("change", e => {
   document.getElementById("casier_details").style.display =
     e.target.value === "Oui" ? "block" : "none";
@@ -149,16 +162,29 @@ async function getIP() {
   return d.ip;
 }
 
-// Vérifier état dès l’arrivée sur le site
-(async function init() {
+// INITIALISATION AU CHARGEMENT
+async function init() {
   const ip = localStorage.getItem("recruit_ip");
   if (!ip) return;
 
-  document.getElementById("formContainer").style.display = "none";
-  document.getElementById("loading").style.display = "block";
-  setInterval(checkStatus, 5000);
-})();
+  const res = await fetch(SCRIPT_URL + "?ip=" + ip);
+  const status = await res.text();
 
+  if (status === "VALIDÉ") {
+    window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
+  }
+  else if (status === "EN_ATTENTE") {
+    document.getElementById("formContainer").style.display = "none";
+    document.getElementById("loading").style.display = "block";
+    setInterval(checkStatus, 5000);
+  }
+  else {
+    // Aucun dossier trouvé → reset
+    localStorage.removeItem("recruit_ip");
+  }
+}
+
+// ENVOI FORMULAIRE
 document.getElementById("recruitForm").addEventListener("submit", async e => {
   e.preventDefault();
 
@@ -179,18 +205,23 @@ document.getElementById("recruitForm").addEventListener("submit", async e => {
   setInterval(checkStatus, 5000);
 });
 
+// Vérification statut
 async function checkStatus() {
   const ip = localStorage.getItem("recruit_ip");
   if (!ip) return;
 
   const res = await fetch(SCRIPT_URL + "?ip=" + ip);
-  const txt = await res.text();
+  const status = await res.text();
 
-  if (txt === "VALIDÉ") {
+  if (status === "VALIDÉ") {
     window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
   }
 }
+
+init();
 </script>
 
 </body>
 </html>
+
+  
