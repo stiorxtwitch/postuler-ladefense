@@ -6,10 +6,9 @@
 
 <style>
 body {
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: Arial, sans-serif;
   background: #020617;
   color: #e5e7eb;
-  margin: 0;
   padding: 40px;
 }
 
@@ -22,94 +21,88 @@ body {
   border-radius: 14px;
 }
 
-h1 {
-  text-align: center;
-  color: #60a5fa;
-}
+h1 { text-align:center; color:#60a5fa; }
 
 input, textarea, select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border-radius: 6px;
-  border: 1px solid #1e293b;
-  background: #020617;
-  color: white;
+  width:100%;
+  padding:12px;
+  margin-top:12px;
+  border-radius:6px;
+  border:1px solid #1e293b;
+  background:#020617;
+  color:white;
 }
 
-textarea { min-height: 120px; }
-
+textarea { min-height:120px; }
 label { display:block; margin-top:12px; }
 
 button {
-  margin-top: 25px;
-  width: 100%;
-  padding: 14px;
-  background: #2563eb;
-  border: none;
-  color: white;
-  font-size: 16px;
-  border-radius: 6px;
-  cursor: pointer;
+  margin-top:25px;
+  width:100%;
+  padding:14px;
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:6px;
+  font-size:16px;
+  cursor:pointer;
 }
 
 #loading {
-  display: none;
-  text-align: center;
-  margin-top: 120px;
+  display:none;
+  text-align:center;
+  margin-top:120px;
 }
 
 .spinner {
-  width: 70px;
-  height: 70px;
-  border: 7px solid #1e293b;
-  border-top: 7px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: auto;
+  width:70px;
+  height:70px;
+  border:7px solid #1e293b;
+  border-top:7px solid #3b82f6;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 
 <body>
 
 <div class="container" id="formContainer">
-  <h1>Formulaire de Recrutement</h1>
+<h1>Formulaire de Recrutement</h1>
 
-  <form id="recruitForm">
-    <input name="nom" placeholder="Nom & Prénom" required>
-    <input type="number" name="age" placeholder="Âge" required>
-    <input name="nationalite" placeholder="Nationalité" required>
-    <input name="telephone" placeholder="Numéro de téléphone" required>
+<form id="recruitForm">
+<input name="nom" placeholder="Nom & Prénom" required>
+<input type="number" name="age" placeholder="Âge" required>
+<input name="nationalite" placeholder="Nationalité" required>
+<input name="telephone" placeholder="Téléphone" required>
 
-    <label>Antécédents judiciaires</label>
-    <select name="casier" id="casier">
-      <option value="Non">Non</option>
-      <option value="Oui">Oui</option>
-    </select>
+<label>Antécédents judiciaires</label>
+<select id="casier" name="casier">
+  <option value="Non">Non</option>
+  <option value="Oui">Oui</option>
+</select>
 
-    <textarea id="casier_details" name="casier_details"
-      placeholder="Précisez vos antécédents"
-      style="display:none;"></textarea>
+<textarea id="casier_details" name="casier_details"
+  placeholder="Précisez vos antécédents"
+  style="display:none;"></textarea>
 
-    <input name="discord" placeholder="Identifiant Discord" required>
-    <input name="dispos" placeholder="Disponibilités" required>
+<input name="discord" placeholder="Discord" required>
+<input name="dispos" placeholder="Disponibilités" required>
 
-    <textarea name="motivation" minlength="200"
-      placeholder="Pourquoi rejoindre l'armée ?" required></textarea>
+<textarea name="motivation" minlength="200" placeholder="Pourquoi rejoindre l'armée ?" required></textarea>
+<textarea name="apport" placeholder="Ce que vous apportez" required></textarea>
+<textarea name="role" placeholder="Rôle du militaire" required></textarea>
+<textarea name="experience" placeholder="Expérience" required></textarea>
 
-    <textarea name="apport" placeholder="Ce que vous apportez" required></textarea>
-    <textarea name="role" placeholder="Rôle du militaire" required></textarea>
-    <textarea name="experience" placeholder="Expérience" required></textarea>
+<label><input type="checkbox" required> Respect de la hiérarchie</label>
+<label><input type="checkbox" required> Compréhension des sanctions</label>
+<label><input type="checkbox" required> Honnêteté</label>
 
-    <label><input type="checkbox" required> Respect de la hiérarchie</label>
-    <label><input type="checkbox" required> Compréhension des sanctions</label>
-    <label><input type="checkbox" required> Honnêteté</label>
-
-    <button type="submit">Envoyer</button>
-  </form>
+<button type="submit">Envoyer le dossier</button>
+</form>
 </div>
 
 <div id="loading">
@@ -119,11 +112,12 @@ button {
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzm0Wbf7bCLY_YHoMDT0tBfjTK9YjfrFJiVpL6ngXMsk_gvJVL2fnd79JD-C3rWmu69/exec";
-let statusInterval = null;
+let interval = null;
 
 // Champ conditionnel
 document.getElementById("casier").addEventListener("change", e => {
-  casier_details.style.display = e.target.value === "Oui" ? "block" : "none";
+  document.getElementById("casier_details").style.display =
+    e.target.value === "Oui" ? "block" : "none";
 });
 
 // IP
@@ -132,8 +126,10 @@ async function getIP() {
   return (await r.json()).ip;
 }
 
-// INIT — ne fait RIEN sans IP valide
+// INIT — STRICT
 async function init() {
+  if (localStorage.getItem("submitted") !== "true") return;
+
   const ip = localStorage.getItem("recruit_ip");
   if (!ip) return;
 
@@ -145,11 +141,11 @@ async function init() {
   } else if (status === "VALIDÉ") {
     window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
   } else {
-    localStorage.removeItem("recruit_ip");
+    localStorage.clear();
   }
 }
 
-// SUBMIT — seul endroit où le loading est autorisé
+// SUBMIT = SEUL POINT D’ENTRÉE DU LOADING
 document.getElementById("recruitForm").addEventListener("submit", async e => {
   e.preventDefault();
 
@@ -163,7 +159,9 @@ document.getElementById("recruitForm").addEventListener("submit", async e => {
     body: data
   });
 
+  localStorage.setItem("submitted", "true");
   localStorage.setItem("recruit_ip", ip);
+
   showLoading();
 });
 
@@ -171,8 +169,8 @@ function showLoading() {
   document.getElementById("formContainer").style.display = "none";
   document.getElementById("loading").style.display = "block";
 
-  if (!statusInterval) {
-    statusInterval = setInterval(checkStatus, 5000);
+  if (!interval) {
+    interval = setInterval(checkStatus, 5000);
   }
 }
 
@@ -191,3 +189,4 @@ init();
 
 </body>
 </html>
+
