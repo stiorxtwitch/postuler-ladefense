@@ -7,7 +7,7 @@
 <style>
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(180deg, #020617, #020617);
+  background: #020617;
   color: #e5e7eb;
   margin: 0;
   padding: 40px;
@@ -20,13 +20,11 @@ body {
   border: 1px solid #1e293b;
   padding: 35px;
   border-radius: 14px;
-  box-shadow: 0 0 50px rgba(0,0,0,.7);
 }
 
 h1 {
   text-align: center;
   color: #60a5fa;
-  margin-bottom: 25px;
 }
 
 input, textarea, select {
@@ -37,38 +35,28 @@ input, textarea, select {
   border: 1px solid #1e293b;
   background: #020617;
   color: white;
-  font-size: 15px;
 }
 
-textarea {
-  min-height: 120px;
-}
+textarea { min-height: 120px; }
 
-label {
-  display: block;
-  margin-top: 14px;
-}
+label { display:block; margin-top:12px; }
 
 button {
-  margin-top: 28px;
+  margin-top: 25px;
   width: 100%;
   padding: 14px;
   background: #2563eb;
-  color: white;
   border: none;
+  color: white;
   font-size: 16px;
   border-radius: 6px;
   cursor: pointer;
 }
 
-button:hover {
-  background: #1d4ed8;
-}
-
 #loading {
   display: none;
   text-align: center;
-  margin-top: 140px;
+  margin-top: 120px;
 }
 
 .spinner {
@@ -81,9 +69,7 @@ button:hover {
   margin: auto;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 
@@ -93,51 +79,36 @@ button:hover {
   <h1>Formulaire de Recrutement</h1>
 
   <form id="recruitForm">
-
     <input name="nom" placeholder="Nom & Prénom" required>
     <input type="number" name="age" placeholder="Âge" required>
     <input name="nationalite" placeholder="Nationalité" required>
     <input name="telephone" placeholder="Numéro de téléphone" required>
 
     <label>Antécédents judiciaires</label>
-    <select name="casier" id="casier" required>
+    <select name="casier" id="casier">
       <option value="Non">Non</option>
       <option value="Oui">Oui</option>
     </select>
 
-    <textarea
-      name="casier_details"
-      id="casier_details"
-      placeholder="Précisez vos antécédents judiciaires"
-      style="display:none;"
-    ></textarea>
+    <textarea id="casier_details" name="casier_details"
+      placeholder="Précisez vos antécédents"
+      style="display:none;"></textarea>
 
     <input name="discord" placeholder="Identifiant Discord" required>
-    <input name="dispos" placeholder="Disponibilités (jours)" required>
+    <input name="dispos" placeholder="Disponibilités" required>
 
     <textarea name="motivation" minlength="200"
-      placeholder="Pourquoi rejoindre l'armée (5 lignes minimum)" required></textarea>
+      placeholder="Pourquoi rejoindre l'armée ?" required></textarea>
 
-    <textarea name="apport" placeholder="Que pensez-vous apporter à l'armée ?" required></textarea>
-    <textarea name="role" placeholder="Que représente le rôle d’un militaire ?" required></textarea>
-    <textarea name="experience" placeholder="Expérience professionnelle" required></textarea>
+    <textarea name="apport" placeholder="Ce que vous apportez" required></textarea>
+    <textarea name="role" placeholder="Rôle du militaire" required></textarea>
+    <textarea name="experience" placeholder="Expérience" required></textarea>
 
-    <label>
-      <input type="checkbox" name="hierarchie" required>
-      Je m'engage à respecter la hiérarchie militaire
-    </label>
+    <label><input type="checkbox" required> Respect de la hiérarchie</label>
+    <label><input type="checkbox" required> Compréhension des sanctions</label>
+    <label><input type="checkbox" required> Honnêteté</label>
 
-    <label>
-      <input type="checkbox" name="sanction" required>
-      Je comprends que toute faute peut entraîner une sanction
-    </label>
-
-    <label>
-      <input type="checkbox" name="honnete" required>
-      J’ai répondu honnêtement au questionnaire
-    </label>
-
-    <button type="submit">Envoyer le dossier</button>
+    <button type="submit">Envoyer</button>
   </form>
 </div>
 
@@ -148,21 +119,20 @@ button:hover {
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzm0Wbf7bCLY_YHoMDT0tBfjTK9YjfrFJiVpL6ngXMsk_gvJVL2fnd79JD-C3rWmu69/exec";
+let statusInterval = null;
 
-// Champ conditionnel casier
+// Champ conditionnel
 document.getElementById("casier").addEventListener("change", e => {
-  document.getElementById("casier_details").style.display =
-    e.target.value === "Oui" ? "block" : "none";
+  casier_details.style.display = e.target.value === "Oui" ? "block" : "none";
 });
 
-// Récupération IP
+// IP
 async function getIP() {
   const r = await fetch("https://api.ipify.org?format=json");
-  const d = await r.json();
-  return d.ip;
+  return (await r.json()).ip;
 }
 
-// INITIALISATION AU CHARGEMENT
+// INIT — ne fait RIEN sans IP valide
 async function init() {
   const ip = localStorage.getItem("recruit_ip");
   if (!ip) return;
@@ -170,50 +140,48 @@ async function init() {
   const res = await fetch(SCRIPT_URL + "?ip=" + ip);
   const status = await res.text();
 
-  if (status === "VALIDÉ") {
+  if (status === "EN_ATTENTE") {
+    showLoading();
+  } else if (status === "VALIDÉ") {
     window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
-  }
-  else if (status === "EN_ATTENTE") {
-    document.getElementById("formContainer").style.display = "none";
-    document.getElementById("loading").style.display = "block";
-    setInterval(checkStatus, 5000);
-  }
-  else {
-    // Aucun dossier trouvé → reset
+  } else {
     localStorage.removeItem("recruit_ip");
   }
 }
 
-// ENVOI FORMULAIRE
+// SUBMIT — seul endroit où le loading est autorisé
 document.getElementById("recruitForm").addEventListener("submit", async e => {
   e.preventDefault();
 
   const ip = await getIP();
-  const formData = new FormData(e.target);
-  formData.append("ip", ip);
+  const data = new FormData(e.target);
+  data.append("ip", ip);
 
   await fetch(SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
-    body: formData
+    body: data
   });
 
   localStorage.setItem("recruit_ip", ip);
-
-  document.getElementById("formContainer").style.display = "none";
-  document.getElementById("loading").style.display = "block";
-  setInterval(checkStatus, 5000);
+  showLoading();
 });
 
-// Vérification statut
+function showLoading() {
+  document.getElementById("formContainer").style.display = "none";
+  document.getElementById("loading").style.display = "block";
+
+  if (!statusInterval) {
+    statusInterval = setInterval(checkStatus, 5000);
+  }
+}
+
 async function checkStatus() {
   const ip = localStorage.getItem("recruit_ip");
   if (!ip) return;
 
   const res = await fetch(SCRIPT_URL + "?ip=" + ip);
-  const status = await res.text();
-
-  if (status === "VALIDÉ") {
+  if ((await res.text()) === "VALIDÉ") {
     window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
   }
 }
@@ -223,5 +191,3 @@ init();
 
 </body>
 </html>
-
-  
