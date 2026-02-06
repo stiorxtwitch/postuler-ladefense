@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+  <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -6,65 +7,76 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: white;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg,#020617,#020617);
+  color: #e5e7eb;
   margin: 0;
-  padding: 20px;
+  padding: 30px;
 }
 
-form {
-  max-width: 700px;
+.container {
+  max-width: 750px;
   margin: auto;
   background: #020617;
-  padding: 25px;
-  border-radius: 10px;
+  border: 1px solid #1e293b;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 40px rgba(0,0,0,.6);
 }
 
-h2 {
+h1 {
   text-align: center;
+  color: #60a5fa;
+  margin-bottom: 20px;
 }
 
 input, textarea, select {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
+  background: #020617;
+  color: white;
+  border: 1px solid #1e293b;
 }
 
 textarea {
-  min-height: 100px;
+  min-height: 120px;
 }
 
 label {
   display: block;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 button {
-  margin-top: 20px;
+  margin-top: 25px;
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background: #2563eb;
   color: white;
   border: none;
   font-size: 16px;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 5px;
+}
+
+button:hover {
+  background: #1d4ed8;
 }
 
 #loading {
   display: none;
   text-align: center;
-  margin-top: 100px;
+  margin-top: 120px;
 }
 
 .spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid #1e293b;
-  border-top: 6px solid #3b82f6;
+  width: 70px;
+  height: 70px;
+  border: 7px solid #1e293b;
+  border-top: 7px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: auto;
@@ -78,33 +90,43 @@ button {
 
 <body>
 
-<form id="recruitForm">
-<h2>Formulaire de Recrutement – La Défense</h2>
+<div class="container" id="formContainer">
+  <h1>Formulaire de Recrutement</h1>
 
-<input name="nom" placeholder="Nom Prénom" required>
-<input type="number" name="age" placeholder="Âge" required>
-<input name="nationalite" placeholder="Nationalité" required>
-<input name="telephone" placeholder="Numéro de téléphone" required>
+  <form id="recruitForm">
 
-<select name="casier">
-  <option value="Non">Aucun antécédent judiciaire</option>
-  <option value="Oui">Oui (préciser)</option>
-</select>
+    <input name="nom" placeholder="Nom & Prénom" required>
+    <input type="number" name="age" placeholder="Âge" required>
+    <input name="nationalite" placeholder="Nationalité" required>
+    <input name="telephone" placeholder="Numéro de téléphone" required>
 
-<input name="discord" placeholder="Identifiant Discord" required>
-<input name="dispos" placeholder="Disponibilités (jours)" required>
+    <label>Antécédents judiciaires</label>
+    <select name="casier" id="casier" required>
+      <option value="Non">Non</option>
+      <option value="Oui">Oui</option>
+    </select>
 
-<textarea name="motivation" minlength="200" placeholder="Pourquoi rejoindre l'armée (5 lignes minimum)" required></textarea>
-<textarea name="apport" placeholder="Que pensez-vous apporter à l'armée ?" required></textarea>
-<textarea name="role" placeholder="Que représente le rôle d’un militaire ?" required></textarea>
-<textarea name="experience" placeholder="Expérience professionnelle (si oui)" required></textarea>
+    <textarea name="casier_details" id="casier_details"
+      placeholder="Précisez vos antécédents judiciaires"
+      style="display:none;"></textarea>
 
-<label><input type="checkbox" name="hierarchie" required> Je m'engage à respecter la hiérarchie militaire</label>
-<label><input type="checkbox" name="sanction" required> Je comprends les sanctions possibles</label>
-<label><input type="checkbox" name="honnete" required> J’ai répondu honnêtement</label>
+    <input name="discord" placeholder="Identifiant Discord" required>
+    <input name="dispos" placeholder="Disponibilités (jours)" required>
 
-<button type="submit">Envoyer le dossier</button>
-</form>
+    <textarea name="motivation" minlength="200"
+      placeholder="Pourquoi rejoindre l'armée (5 lignes minimum)" required></textarea>
+
+    <textarea name="apport" placeholder="Que pensez-vous apporter à l'armée ?" required></textarea>
+    <textarea name="role" placeholder="Que représente le rôle d’un militaire ?" required></textarea>
+    <textarea name="experience" placeholder="Expérience professionnelle" required></textarea>
+
+    <label><input type="checkbox" name="hierarchie" required> Je m'engage à respecter la hiérarchie militaire</label>
+    <label><input type="checkbox" name="sanction" required> Je comprends les sanctions possibles</label>
+    <label><input type="checkbox" name="honnete" required> J’ai répondu honnêtement</label>
+
+    <button type="submit">Envoyer le dossier</button>
+  </form>
+</div>
 
 <div id="loading">
   <div class="spinner"></div>
@@ -114,13 +136,30 @@ button {
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzm0Wbf7bCLY_YHoMDT0tBfjTK9YjfrFJiVpL6ngXMsk_gvJVL2fnd79JD-C3rWmu69/exec";
 
+// Afficher / cacher le champ antécédents
+document.getElementById("casier").addEventListener("change", e => {
+  document.getElementById("casier_details").style.display =
+    e.target.value === "Oui" ? "block" : "none";
+});
+
+// Récupération IP
 async function getIP() {
   const r = await fetch("https://api.ipify.org?format=json");
   const d = await r.json();
   return d.ip;
 }
 
-document.getElementById("recruitForm").addEventListener("submit", async (e) => {
+// Vérifier état dès l’arrivée sur le site
+(async function init() {
+  const ip = localStorage.getItem("recruit_ip");
+  if (!ip) return;
+
+  document.getElementById("formContainer").style.display = "none";
+  document.getElementById("loading").style.display = "block";
+  setInterval(checkStatus, 5000);
+})();
+
+document.getElementById("recruitForm").addEventListener("submit", async e => {
   e.preventDefault();
 
   const ip = await getIP();
@@ -134,14 +173,11 @@ document.getElementById("recruitForm").addEventListener("submit", async (e) => {
   });
 
   localStorage.setItem("recruit_ip", ip);
-  showLoading();
-});
 
-function showLoading() {
-  document.getElementById("recruitForm").style.display = "none";
+  document.getElementById("formContainer").style.display = "none";
   document.getElementById("loading").style.display = "block";
   setInterval(checkStatus, 5000);
-}
+});
 
 async function checkStatus() {
   const ip = localStorage.getItem("recruit_ip");
@@ -154,8 +190,6 @@ async function checkStatus() {
     window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
   }
 }
-
-checkStatus();
 </script>
 
 </body>
