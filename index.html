@@ -14,6 +14,7 @@
         #loading { display: none; text-align: center; margin-top: 20px; font-size: 1.2em; color: #0066cc; }
         #confirmation { display: none; text-align: center; margin-top: 20px; color: green; font-size: 1.5em; font-weight: bold; }
         .error { color: red; display: none; font-size: 0.9em; margin-top: 4px; }
+        small { font-size: 0.85em; color: #666; }
     </style>
 </head>
 <body>
@@ -34,7 +35,7 @@
         <label for="nationalite">Nationalité :</label>
         <input type="text" id="nationalite" required>
 
-        <label for="casier">Possédez-vous un casier judiciaire ?</label>
+        <label for="casier">Possédez-vous un casier judiciaire :</label>
         <select id="casier" required>
             <option value="">Sélectionnez</option>
             <option value="non">Non</option>
@@ -46,35 +47,47 @@
         <input type="text" id="discordId" required pattern="\d{17,19}">
         <small>Pour trouver votre ID : Paramètres Discord → Avancé → Mode développeur → Clic droit sur votre profil → Copier l'ID</small>
 
-        <label for="disponibilite">Disponibilité :</label>
-        <textarea id="disponibilite" required rows="6" placeholder="Exemple :&#10;Lundi : 18h-22h&#10;Mardi : 19h-23h&#10;..."></textarea>
+        <label for="disponibilite">Disponibilité (exemple sur plusieurs lignes) :</label>
+        <textarea id="disponibilite" required rows="7"></textarea>
 
         <label for="motivations">Motivations (minimum 5 lignes) :</label>
         <textarea id="motivations" required rows="10"></textarea>
         <p id="motivationsError" class="error">Les motivations doivent comporter au moins 5 lignes.</p>
 
-        <label for="apport">Que pouvez-vous apporter à l'armée ?</label>
+        <label for="apport">Que pouvez-vous apporter à l'armée :</label>
         <textarea id="apport" required rows="5"></textarea>
 
-        <label for="experience">Expérience de travail / militaire :</label>
+        <label for="experience">Expérience de travail :</label>
         <textarea id="experience" required rows="5"></textarea>
 
-        <label for="diplome">Diplômes / Formations :</label>
+        <label for="diplome">Diplôme :</label>
         <textarea id="diplome" required rows="5"></textarea>
 
-        <label><input type="checkbox" id="hierarchie" required> J'engage à respecter la hiérarchie</label>
-        <label><input type="checkbox" id="sanctions" required> J'engage à respecter et comprendre toutes les sanctions</label>
-        <label><input type="checkbox" id="honnetete" required> J'engage à faire preuve d'honnêteté durant ce recrutement et dans mes futures fonctions</label>
+        <label>
+            <input type="checkbox" id="hierarchie" required>
+            Engagez-vous à respecter la hiérarchie (obligatoire)
+        </label>
+
+        <label>
+            <input type="checkbox" id="sanctions" required>
+            Engagez-vous à respecter et comprendre toutes les sanctions (obligatoire)
+        </label>
+
+        <label>
+            <input type="checkbox" id="honnetete" required>
+            Engagez-vous à faire preuve d'honnêteté durant ce test et au cours de vos futures fonctions (obligatoire)
+        </label>
 
         <button type="submit">Envoyer ma candidature</button>
     </form>
 
     <div id="loading">Envoi en cours...</div>
-    <div id="confirmation">✔ Candidature envoyée avec succès !</div>
+    <div id="confirmation">✔ Confirmation : Votre candidature a été envoyée avec succès !</div>
 
     <script>
-        const SUPABASE_URL = 'https://sevrfgivcpefyykuffti.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc';
+        // CHANGE CETTE URL AVEC LA VRAIE URL PUBLIQUE DE TON SERVEUR WISPBYTE
+        // Exemples possibles : https://60269389.wispbyte.com:15081/webhook   ou   https://ton-serveur.wispbyte.com/webhook
+        const WEBHOOK_URL = 'https://60269389.wispbyte.com:15081/webhook';
 
         const form = document.getElementById('recruitmentForm');
         const casierError = document.getElementById('casierError');
@@ -104,7 +117,7 @@
             const data = {
                 nom: document.getElementById('nom').value.trim(),
                 prenom: document.getElementById('prenom').value.trim(),
-                age: parseInt(document.getElementById('age').value) || null,
+                age: document.getElementById('age').value,
                 telephone: document.getElementById('telephone').value.trim(),
                 nationalite: document.getElementById('nationalite').value.trim(),
                 casier: casier,
@@ -123,28 +136,23 @@
             loading.style.display = 'block';
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/candidatures`, {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(data)
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Erreur Supabase : ${response.status} - ${errorText}`);
+                    throw new Error(`Erreur HTTP ${response.status}`);
                 }
 
                 loading.style.display = 'none';
                 confirmation.style.display = 'block';
-
             } catch (error) {
-                console.error('Erreur lors de l’envoi :', error);
-                alert('Une erreur est survenue lors de l’envoi.\nVérifie ta connexion ou réessaie plus tard.');
+                console.error('Erreur lors de l\'envoi au bot :', error);
+                alert('Une erreur est survenue. Vérifiez votre connexion ou réessayez plus tard.');
                 form.style.display = 'block';
                 loading.style.display = 'none';
             }
