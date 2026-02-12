@@ -1,192 +1,157 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Recrutement – La Défense</title>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #020617;
-  color: #e5e7eb;
-  padding: 40px;
-}
-
-.container {
-  max-width: 760px;
-  margin: auto;
-  background: #020617;
-  border: 1px solid #1e293b;
-  padding: 35px;
-  border-radius: 14px;
-}
-
-h1 { text-align:center; color:#60a5fa; }
-
-input, textarea, select {
-  width:100%;
-  padding:12px;
-  margin-top:12px;
-  border-radius:6px;
-  border:1px solid #1e293b;
-  background:#020617;
-  color:white;
-}
-
-textarea { min-height:120px; }
-label { display:block; margin-top:12px; }
-
-button {
-  margin-top:25px;
-  width:100%;
-  padding:14px;
-  background:#2563eb;
-  color:white;
-  border:none;
-  border-radius:6px;
-  font-size:16px;
-  cursor:pointer;
-}
-
-#loading {
-  display:none;
-  text-align:center;
-  margin-top:120px;
-}
-
-.spinner {
-  width:70px;
-  height:70px;
-  border:7px solid #1e293b;
-  border-top:7px solid #3b82f6;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  margin:auto;
-}
-
-@keyframes spin { to { transform:rotate(360deg); } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire de Recrutement pour la Défense</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        form { display: flex; flex-direction: column; }
+        label { margin-top: 10px; }
+        input, textarea, select { margin-top: 5px; padding: 8px; }
+        #loading { display: none; text-align: center; margin-top: 20px; }
+        #confirmation { display: none; text-align: center; margin-top: 20px; color: green; font-size: 24px; }
+        .error { color: red; display: none; }
+    </style>
 </head>
-
 <body>
+    <h1>Formulaire de Recrutement pour la Défense</h1>
+    <form id="recruitmentForm">
+        <label for="nom">Nom :</label>
+        <input type="text" id="nom" required>
 
-<div class="container" id="formContainer">
-<h1>Formulaire de Recrutement</h1>
+        <label for="prenom">Prénom :</label>
+        <input type="text" id="prenom" required>
 
-<form id="recruitForm">
-<input name="nom" placeholder="Nom & Prénom" required>
-<input type="number" name="age" placeholder="Âge" required>
-<input name="nationalite" placeholder="Nationalité" required>
-<input name="telephone" placeholder="Téléphone" required>
+        <label for="age">Âge :</label>
+        <input type="number" id="age" required min="18">
 
-<label>Antécédents judiciaires</label>
-<select id="casier" name="casier">
-  <option value="Non">Non</option>
-  <option value="Oui">Oui</option>
-</select>
+        <label for="telephone">Numéro de téléphone :</label>
+        <input type="tel" id="telephone" required>
 
-<textarea id="casier_details" name="casier_details"
-  placeholder="Précisez vos antécédents"
-  style="display:none;"></textarea>
+        <label for="nationalite">Nationalité :</label>
+        <input type="text" id="nationalite" required>
 
-<input name="discord" placeholder="Discord" required>
-<input name="dispos" placeholder="Disponibilités" required>
+        <label for="casier">Possédez-vous un casier judiciaire :</label>
+        <select id="casier" required>
+            <option value="">Sélectionnez</option>
+            <option value="non">Non</option>
+            <option value="oui">Oui</option>
+        </select>
+        <p id="casierError" class="error">Avis négatif : Le formulaire ne peut pas être envoyé en raison d'un casier judiciaire.</p>
 
-<textarea name="motivation" minlength="200" placeholder="Pourquoi rejoindre l'armée ?" required></textarea>
-<textarea name="apport" placeholder="Ce que vous apportez" required></textarea>
-<textarea name="role" placeholder="Rôle du militaire" required></textarea>
-<textarea name="experience" placeholder="Expérience" required></textarea>
+        <label for="discordId">ID Discord : (Pour trouver votre ID Discord, activez le mode développeur dans les paramètres Discord > Avancé > Mode développeur, puis cliquez droit sur votre profil et sélectionnez "Copier l'ID".)</label>
+        <input type="text" id="discordId" required pattern="\d{17,19}">
 
-<label><input type="checkbox" required> Respect de la hiérarchie</label>
-<label><input type="checkbox" required> Compréhension des sanctions</label>
-<label><input type="checkbox" required> Honnêteté</label>
+        <label for="disponibilite">Disponibilité (Exemple : Lundi : 09h00 à 17h00, Mardi : 10h00 à 18h00, ..., Dimanche : Indisponible) :</label>
+        <textarea id="disponibilite" required rows="7"></textarea>
 
-<button type="submit">Envoyer le dossier</button>
-</form>
-</div>
+        <label for="motivations">Motivations (5 lignes minimum) :</label>
+        <textarea id="motivations" required rows="10"></textarea>
+        <p id="motivationsError" class="error">Les motivations doivent comporter au moins 5 lignes.</p>
 
-<div id="loading">
-  <div class="spinner"></div>
-  <p>Dossier en attente de validation…</p>
-</div>
+        <label for="apport">Que pouvez-vous apporter à l'armée :</label>
+        <textarea id="apport" required rows="5"></textarea>
 
-<script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzm0Wbf7bCLY_YHoMDT0tBfjTK9YjfrFJiVpL6ngXMsk_gvJVL2fnd79JD-C3rWmu69/exec";
-let interval = null;
+        <label for="experience">Expérience de travail :</label>
+        <textarea id="experience" required rows="5"></textarea>
 
-// Champ conditionnel
-document.getElementById("casier").addEventListener("change", e => {
-  document.getElementById("casier_details").style.display =
-    e.target.value === "Oui" ? "block" : "none";
-});
+        <label for="diplome">Diplôme :</label>
+        <textarea id="diplome" required rows="5"></textarea>
 
-// IP
-async function getIP() {
-  const r = await fetch("https://api.ipify.org?format=json");
-  return (await r.json()).ip;
-}
+        <label>
+            <input type="checkbox" id="hierarchie" required>
+            Engagez-vous à respecter la hiérarchie (obligatoire)
+        </label>
 
-// INIT — STRICT
-async function init() {
-  if (localStorage.getItem("submitted") !== "true") return;
+        <label>
+            <input type="checkbox" id="sanctions" required>
+            Engagez-vous à respecter et comprendre toutes les sanctions (obligatoire)
+        </label>
 
-  const ip = localStorage.getItem("recruit_ip");
-  if (!ip) return;
+        <label>
+            <input type="checkbox" id="honnetete" required>
+            Engagez-vous à faire preuve d'honnêteté durant ce test et au cours de vos futures fonctions (obligatoire)
+        </label>
 
-  const res = await fetch(SCRIPT_URL + "?ip=" + ip);
-  const status = await res.text();
+        <button type="submit">Envoyer</button>
+    </form>
 
-  if (status === "EN_ATTENTE") {
-    showLoading();
-  } else if (status === "VALIDÉ") {
-    window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
-  } else {
-    localStorage.clear();
-  }
-}
+    <div id="loading">Chargement...</div>
+    <div id="confirmation">✔ Confirmation : Votre candidature a été envoyée avec succès !</div>
 
-// SUBMIT = SEUL POINT D’ENTRÉE DU LOADING
-document.getElementById("recruitForm").addEventListener("submit", async e => {
-  e.preventDefault();
+    <script>
+        const form = document.getElementById('recruitmentForm');
+        const casierError = document.getElementById('casierError');
+        const motivationsError = document.getElementById('motivationsError');
+        const loading = document.getElementById('loading');
+        const confirmation = document.getElementById('confirmation');
 
-  const ip = await getIP();
-  const data = new FormData(e.target);
-  data.append("ip", ip);
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-  await fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: data
-  });
+            const casier = document.getElementById('casier').value;
+            const motivations = document.getElementById('motivations').value;
+            const motivationsLines = motivations.split('\n').filter(line => line.trim() !== '').length;
 
-  localStorage.setItem("submitted", "true");
-  localStorage.setItem("recruit_ip", ip);
+            if (casier === 'oui') {
+                casierError.style.display = 'block';
+                return;
+            } else {
+                casierError.style.display = 'none';
+            }
 
-  showLoading();
-});
+            if (motivationsLines < 5) {
+                motivationsError.style.display = 'block';
+                return;
+            } else {
+                motivationsError.style.display = 'none';
+            }
 
-function showLoading() {
-  document.getElementById("formContainer").style.display = "none";
-  document.getElementById("loading").style.display = "block";
+            // Collect data
+            const data = {
+                nom: document.getElementById('nom').value,
+                prenom: document.getElementById('prenom').value,
+                age: document.getElementById('age').value,
+                telephone: document.getElementById('telephone').value,
+                nationalite: document.getElementById('nationalite').value,
+                casier: casier,
+                discordId: document.getElementById('discordId').value,
+                disponibilite: document.getElementById('disponibilite').value,
+                motivations: motivations,
+                apport: document.getElementById('apport').value,
+                experience: document.getElementById('experience').value,
+                diplome: document.getElementById('diplome').value,
+                hierarchie: document.getElementById('hierarchie').checked,
+                sanctions: document.getElementById('sanctions').checked,
+                honnetete: document.getElementById('honnetete').checked
+            };
 
-  if (!interval) {
-    interval = setInterval(checkStatus, 5000);
-  }
-}
+            form.style.display = 'none';
+            loading.style.display = 'block';
 
-async function checkStatus() {
-  const ip = localStorage.getItem("recruit_ip");
-  if (!ip) return;
+            try {
+                // Replace with your deployed Apps Script Web App URL
+                const response = await fetch('https://script.google.com/macros/s/AKfycbxm13R8WY506DsYn3_PMzZcO4Wl8V5JZvlKBD2E8-7GhSSaLelSZ4JANxFz5fZ4VBU3/exec', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-  const res = await fetch(SCRIPT_URL + "?ip=" + ip);
-  if ((await res.text()) === "VALIDÉ") {
-    window.location.href = "https://stiorxtwitch.github.io/psychological-test-ladefense/";
-  }
-}
-
-init();
-</script>
-
+                if (response.ok) {
+                    loading.style.display = 'none';
+                    confirmation.style.display = 'block';
+                } else {
+                    alert('Erreur lors de l\'envoi du formulaire.');
+                    form.style.display = 'block';
+                    loading.style.display = 'none';
+                }
+            } catch (error) {
+                alert('Erreur : ' + error.message);
+                form.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
-
