@@ -40,10 +40,10 @@
         </select>
         <p id="casierError" class="error">Avis négatif : Le formulaire ne peut pas être envoyé en raison d'un casier judiciaire.</p>
 
-        <label for="discordId">ID Discord : (Pour trouver votre ID Discord, activez le mode développeur dans les paramètres Discord > Avancé > Mode développeur, puis cliquez droit sur votre profil et sélectionnez "Copier l'ID".)</label>
+        <label for="discordId">ID Discord :</label>
         <input type="text" id="discordId" required pattern="\d{17,19}">
 
-        <label for="disponibilite">Disponibilité (Exemple : Lundi : 09h00 à 17h00, Mardi : 10h00 à 18h00, ..., Dimanche : Indisponible) :</label>
+        <label for="disponibilite">Disponibilité :</label>
         <textarea id="disponibilite" required rows="7"></textarea>
 
         <label for="motivations">Motivations (5 lignes minimum) :</label>
@@ -59,28 +59,20 @@
         <label for="diplome">Diplôme :</label>
         <textarea id="diplome" required rows="5"></textarea>
 
-        <label>
-            <input type="checkbox" id="hierarchie" required>
-            Engagez-vous à respecter la hiérarchie (obligatoire)
-        </label>
-
-        <label>
-            <input type="checkbox" id="sanctions" required>
-            Engagez-vous à respecter et comprendre toutes les sanctions (obligatoire)
-        </label>
-
-        <label>
-            <input type="checkbox" id="honnetete" required>
-            Engagez-vous à faire preuve d'honnêteté durant ce test et au cours de vos futures fonctions (obligatoire)
-        </label>
+        <label><input type="checkbox" id="hierarchie" required> Respecter la hiérarchie (obligatoire)</label>
+        <label><input type="checkbox" id="sanctions" required> Respecter les sanctions (obligatoire)</label>
+        <label><input type="checkbox" id="honnetete" required> Faire preuve d'honnêteté (obligatoire)</label>
 
         <button type="submit">Envoyer</button>
     </form>
 
     <div id="loading">Chargement...</div>
-    <div id="confirmation">✔ Confirmation : Votre candidature a été envoyée avec succès !</div>
+    <div id="confirmation">✔ Confirmation : Votre candidature a été envoyée !</div>
 
     <script>
+        const SUPABASE_URL = 'https://sevrfgivcpefyykuffti.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc';
+
         const form = document.getElementById('recruitmentForm');
         const casierError = document.getElementById('casierError');
         const motivationsError = document.getElementById('motivationsError');
@@ -97,16 +89,14 @@
             if (casier === 'oui') {
                 casierError.style.display = 'block';
                 return;
-            } else {
-                casierError.style.display = 'none';
             }
+            casierError.style.display = 'none';
 
             if (motivationsLines < 5) {
                 motivationsError.style.display = 'block';
                 return;
-            } else {
-                motivationsError.style.display = 'none';
             }
+            motivationsError.style.display = 'none';
 
             const data = {
                 nom: document.getElementById('nom').value,
@@ -115,7 +105,7 @@
                 telephone: document.getElementById('telephone').value,
                 nationalite: document.getElementById('nationalite').value,
                 casier: casier,
-                discordId: document.getElementById('discordId').value,
+                discord_id: document.getElementById('discordId').value,
                 disponibilite: document.getElementById('disponibilite').value,
                 motivations: motivations,
                 apport: document.getElementById('apport').value,
@@ -130,27 +120,27 @@
             loading.style.display = 'block';
 
             try {
-                const response = await fetch(
-                    'https://script.google.com/macros/s/AKfycbxU4Mb0aDoP0ZwQYElqM15fyKyVCi9ZieCd-nStGmKi-npYVOm3j0cFiiIflLd2RA4p/exec',
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain;charset=utf-8'
-                        },
-                        body: JSON.stringify(data),
-                        redirect: 'follow'
-                    }
-                );
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/candidatures`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'  // Pas besoin de renvoyer les données
+                    },
+                    body: JSON.stringify(data)
+                });
 
-                if (response.ok) {
-                    loading.style.display = 'none';
-                    confirmation.style.display = 'block';
-                } else {
-                    throw new Error('Erreur lors de l\'envoi (statut ' + response.status + ')');
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP ${response.status}`);
                 }
+
+                loading.style.display = 'none';
+                confirmation.style.display = 'block';
+
             } catch (error) {
-                console.error('Erreur fetch :', error);
-                alert('Une erreur est survenue lors de l\'envoi du formulaire.\nVérifie ta connexion ou réessaie plus tard.');
+                console.error('Erreur :', error);
+                alert('Erreur lors de l\'envoi. Vérifie ta connexion ou réessaie.');
                 form.style.display = 'block';
                 loading.style.display = 'none';
             }
