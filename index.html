@@ -108,7 +108,6 @@
                 motivationsError.style.display = 'none';
             }
 
-            // Collect data
             const data = {
                 nom: document.getElementById('nom').value,
                 prenom: document.getElementById('prenom').value,
@@ -131,23 +130,27 @@
             loading.style.display = 'block';
 
             try {
-                // Replace with your deployed Apps Script Web App URL
-                const response = await fetch('https://script.google.com/macros/s/AKfycbxm13R8WY506DsYn3_PMzZcO4Wl8V5JZvlKBD2E8-7GhSSaLelSZ4JANxFz5fZ4VBU3/exec', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                const response = await fetch(
+                    'https://script.google.com/macros/s/AKfycbxU4Mb0aDoP0ZwQYElqM15fyKyVCi9ZieCd-nStGmKi-npYVOm3j0cFiiIflLd2RA4p/exec',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8'
+                        },
+                        body: JSON.stringify(data),
+                        redirect: 'follow'
+                    }
+                );
 
                 if (response.ok) {
                     loading.style.display = 'none';
                     confirmation.style.display = 'block';
                 } else {
-                    alert('Erreur lors de l\'envoi du formulaire.');
-                    form.style.display = 'block';
-                    loading.style.display = 'none';
+                    throw new Error('Erreur lors de l\'envoi (statut ' + response.status + ')');
                 }
             } catch (error) {
-                alert('Erreur : ' + error.message);
+                console.error('Erreur fetch :', error);
+                alert('Une erreur est survenue lors de l\'envoi du formulaire.\nVérifie ta connexion ou réessaie plus tard.');
                 form.style.display = 'block';
                 loading.style.display = 'none';
             }
